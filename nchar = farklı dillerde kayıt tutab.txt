@@ -1,0 +1,79 @@
+nchar => farklı dillerde kayıt tutabilmek için kullanılır.
+varchar(50) => 1-50 arasında karakter girebilirim. Kaç karakter yazarsam o kadar bellekte yer ayırır. 
+char(50) => Sabit olarak 50 karakterlik yer ayırır. TC kimlikte kullanılır
+
+CREATE TABLE => Yeni tablo oluşturur
+
+CREATE TABLE StudentInformation(
+	StudentNumber INT,
+	StudentName VARCHAR(20),
+	StudentSurname VARCHAR(20),
+	IdentityNumber char(11),
+	RecordDate date,
+	IsMale bit
+);
+
+ALTER TABLE => Tabloyu günceller
+DROP TABLE => Tabloyu siler
+
+
+Joins:
+
+SQL Joins are used to combine data from two or more tables based on a related column.
+
+Matching records using common columns.
+Improving data analysis by combining related information.
+Creating meaningful result sets from separate tables.
+
+1. INNER JOIN
+INNER JOIN is used to retrieve rows where matching values exist in both tables. It helps in:
+
+Combining records based on a related column.
+Returning only matching rows from both tables.
+Excluding non-matching data from the result set.
+Ensuring accurate data relationships between tables.
+
+SELECT A.column1, A.column2, B.column1, ...
+FROM tableA AS A
+INNER JOIN tableB AS B
+ON A.matching_column = B.matching_column;
+
+Note: We can also write JOIN instead of INNER JOIN.  JOIN is same as INNER JOIN. 
+
+2. LEFT JOIN
+
+In SQL, the LEFT JOIN (also called LEFT OUTER JOIN) retrieves all records from the left table and only the matching records from the right table. If no match is found, NULL values are returned for the right table columns.
+
+SELECT A.column1, A.column2, B.column1, ...
+FROM tableA AS A
+LEFT JOIN tableB AS B
+ON A.matching_column = B.matching_column;
+
+SQL LEFT JOIN with WHERE Clause
+
+In this example, the WHERE clause filters the results to display only employee whose department location is 'London'. departments without employee will not appear in the output.
+
+SELECT e.emp_id,
+       e.name,
+       d.department_name,
+       d.department_head,
+       d.location
+FROM employee AS e
+LEFT JOIN department AS d
+    ON e.department_id = d.department_id
+WHERE d.location = 'London';
+
+3. RIGHT JOIN
+
+In SQL, the RIGHT JOIN (also called RIGHT OUTER JOIN) is used to combine rows from two tables based on a related column. It returns all records from the right table and only the matching records from the left table. If there is no match in the left table, the result will show NULL values for the left table’s columns.
+
+SELECT A.column1, A.column2, B.column1, ...
+FROM tableA AS A
+RIGHT JOIN tableB AS B
+ON A.matching_column = B.matching_column;
+
+Applications of SQL RIGHT JOIN
+Merging Data: Combines related data from different tables.
+Ensuring Completeness: Guarantees all records from the right table are included.
+Handling Missing Values: Identifies records without matches in the left table.
+Analyzing Relationships: Helps detect data gaps and dependencies across tables.
