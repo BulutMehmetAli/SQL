@@ -88,17 +88,104 @@ FULL JOIN tableB AS B
 ON A.matching_column = B.matching_column;
 
 
+Her JOIN türünü, hangi soruyu cevapladığına göre düşünmek en kolayı. Örneklerde senin tablolarını kullanıyorum.
 
+**1. INNER JOIN: "Sadece iki tarafta da olanlar"**
 
+İki tabloda eşleşen satırları getirir, eşleşmeyenleri atar. **En çok kullanılan JOIN budur.**
 
+**Ne zaman:** İki tarafın da bilgisine ihtiyacın varsa ve eşleşmeyen kayıtlar seni ilgilendirmiyorsa.
 
+```sql
+-- Harcama yapan öğrencilerin adları ve toplam harcamaları
+SELECT Si.StudentName, SUM(Ce.ExpenseAmount) AS Total
+FROM StudentInformation Si
+INNER JOIN CanteenExpenses Ce ON Si.StudentNumber = Ce.StudentNumber
+GROUP BY Si.StudentNumber, Si.StudentName;
+```
 
+Sonuç 50 öğrenci. Hiç harcama yapmamış 150 öğrenci gelmez.
 
+**2. LEFT JOIN: "Soldakilerin hepsi, sağdan eşleşen varsa"**
 
+Soldaki tablonun bütün satırlarını getirir. Sağda karşılığı yoksa o kolonlar `NULL` olur. **İkinci en çok kullanılan JOIN.**
 
+**Ne zaman:** Ana listen soldaysa ve hiçbir kaydı kaybetmek istemiyorsan.
 
+```sql
+-- Bütün öğrenciler ve toplam harcamaları (harcaması olmayanlar 0)
+SELECT Si.StudentName, ISNULL(SUM(Ce.ExpenseAmount), 0) AS Total
+FROM StudentInformation Si
+LEFT JOIN CanteenExpenses Ce ON Si.StudentNumber = Ce.StudentNumber
+GROUP BY Si.StudentNumber, Si.StudentName;
+```
 
+Sonuç 200 öğrenci.
 
+**Çok kullanılan bir kalıp, "hiç ... yapmayanları bul":**
+
+```sql
+-- Hiç kantin alışverişi yapmamış öğrenciler
+SELECT Si.StudentNumber, Si.StudentName
+FROM StudentInformation Si
+LEFT JOIN CanteenExpenses Ce ON Si.StudentNumber = Ce.StudentNumber
+WHERE Ce.StudentNumber IS NULL;
+```
+
+Hiç sipariş vermemiş müşteriler, hiç giriş yapmamış kullanıcılar gibi sorular hep bu kalıpla çözülür. Mülakatlarda da çok sorulur.
+
+**3. RIGHT JOIN: LEFT JOIN'in tersi**
+
+Sağdaki tablonun bütün satırlarını getirir. Pratikte nadiren kullanılır, çünkü tabloların yerini değiştirip LEFT JOIN yazmak daha okunaklı. Çoğu ekip sadece LEFT JOIN kullanır.
+
+**4. FULL OUTER JOIN: "İki tarafın hepsi"**
+
+İki tablodaki bütün satırları getirir, eşleşmeyenlerin eksik tarafını `NULL` bırakır.
+
+**Ne zaman:** İki listeyi karşılaştırıp her iki taraftaki eksikleri bulmak istediğinde. Örneğin muhasebe sistemiyle satış sistemindeki kayıtları karşılaştırmak ya da iki tablonun tutarlı olup olmadığını kontrol etmek.
+
+```sql
+-- Öğrenci kaydı olup adresi olmayanlar + adresi olup öğrenci kaydı olmayanlar
+SELECT Si.StudentNumber, Sa.StudentNumber
+FROM StudentInformation Si
+FULL OUTER JOIN StudentAddress Sa ON Si.StudentNumber = Sa.StudentNumber
+WHERE Si.StudentNumber IS NULL OR Sa.StudentNumber IS NULL;
+```
+
+**5. CROSS JOIN: "Her şey her şeyle"**
+
+Eşleştirme koşulu yoktur. Soldaki her satırı sağdaki her satırla birleştirir; 200 × 200 = 40.000 satır çıkar.
+
+**Ne zaman:** Bütün kombinasyonları üretmek istediğinde. Örneğin her mağaza × her ay tablosu oluşturup satış olmayan ayları da 0 olarak göstermek için. Nadiren kullanılır ve yanlışlıkla kullanırsan tablo devasa olur.
+
+**6. SELF JOIN: Tabloyu kendisiyle birleştirmek**
+
+Ayrı bir komut değil; aynı tabloya iki farklı takma ad verip JOIN yapıyorsun.
+
+**Ne zaman:** Aynı tablodaki satırları karşılaştırmak istediğinde. Örneğin aynı gün kayıt olmuş öğrenci çiftlerini bulmak ya da çalışan tablosunda her çalışanın yöneticisini bulmak (yönetici de aynı tabloda bir çalışan).
+
+```sql
+-- Aynı gün kayıt olmuş öğrenci çiftleri
+SELECT A.StudentName, B.StudentName, A.RecordDate
+FROM StudentInformation A
+INNER JOIN StudentInformation B
+    ON A.RecordDate = B.RecordDate
+   AND A.StudentNumber < B.StudentNumber;
+```
+
+`<` koşulu, aynı çiftin iki kez (A-B ve B-A) gelmesini ve öğrencinin kendisiyle eşleşmesini engelliyor.
+
+**Özet**
+
+| JOIN | Soru | Kullanım sıklığı |
+| INNER | Sadece eşleşenler | Çok sık |
+| LEFT | Ana listenin hepsi + varsa ek bilgi | Çok sık |
+| RIGHT | LEFT'in tersi | Nadir |
+| FULL OUTER | İki listeyi karşılaştırma | Ara sıra |
+| CROSS | Bütün kombinasyonlar | Nadir |
+| SELF | Tablo içi karşılaştırma | Ara sıra |
+
+Pratikte işlerin %90'ı INNER ve LEFT JOIN ile çözülüyor. Yine de mülakatta "INNER ile LEFT JOIN farkı nedir?" ve "hiç sipariş vermemiş müşterileri bul" soruları neredeyse kesin geliyor; bu ikisini çok iyi oturt.
 
 
 
