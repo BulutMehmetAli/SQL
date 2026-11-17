@@ -187,6 +187,197 @@ INNER JOIN StudentInformation B
 
 Pratikte işlerin %90'ı INNER ve LEFT JOIN ile çözülüyor. Yine de mülakatta "INNER ile LEFT JOIN farkı nedir?" ve "hiç sipariş vermemiş müşterileri bul" soruları neredeyse kesin geliyor; bu ikisini çok iyi oturt.
 
+SQL Natural Join
+
+Natural Join is a type of join that automatically matches and combines rows from two tables based on columns with same name and compatible data types. Unlike other joins, you don’t need to manually specify condition; SQL detects common columns and returns a result without redundant duplicate columns.
+
+SELECT * 
+FROM table1
+NATURAL JOIN table2;
+
+Outer ve inner join arasındaki farklar:
+
+INNER JOIN: Sadece iki tabloda da karşılığı olan satırları getirir. Eşleşmeyenleri atar.
+OUTER JOIN: Eşleşenlerin yanında eşleşmeyenleri de getirir ve eksik tarafı NULL ile doldurur.
+
+Students              Expenses
+No | Name             No | Amount
+1  | Ali              1  | 20
+2  | Ayşe             1  | 30
+3  | Can              4  | 15    ← 4 numaralı öğrenci Students'ta yok
+
+INNER JOIN sadece eşleşenleri getirir:
+
+OUTER JOIN’in üç türü var; eşleşmeyenlerden hangilerinin kalacağına göre değişiyor:
+LEFT OUTER JOIN: Soldaki tablonun hepsi kalır.
+RIGHT OUTER JOIN: Sağdaki tablonun hepsi kalır.
+FULL OUTER JOIN: İki tablonun da hepsi kalır.
+LEFT JOIN ile LEFT OUTER JOIN aynı şey; “OUTER” kelimesi yazılmasa da olur. JOIN tek başına yazılırsa INNER JOIN anlamına gelir.
+Satır sayısı açısından INNER JOIN her zaman en az satırı, FULL OUTER JOIN en çok satırı döndürür.
+
+SQL provides the OUTER JOIN to return both matching and non-matching rows from two tables. It includes unmatched records by filling missing values with NULL. It is more inclusive than INNER JOIN.
+
+Inner Join vs Outer Join
+
+A Join in SQL is used to combine rows from two or more tables based on a related column between them. It allows you to fetch meaningful information by linking data stored across multiple tables in a relational database. The two types of joins are Inner Join and Outer Join.
+
+Inner Join/Simple Join
+An Inner Join returns only the matching rows between the two tables based on a specified condition. It combines data from two tables based on a common column between them, which is specified using the ON keyword in SQL. If a row in one table does not have a matching row in the other table, that row will not be included in the result set. In an Inner join, it allows retrieving data from two tables with the same ID.
+Inner Join is basically performed by just selecting the records having the common values or the matching values in both tables. In case of no common values, no data is shown in the output.
+
+Outer Join
+An Outer Join returns all the rows from one table and matching rows from the other table based on a specified condition. It combines data from two tables based on a common column between them, which is also specified using the ON keyword in SQL. In addition to the matching rows, it also includes rows from one table that do not have matching rows in the other table.
+
+1. Left Outer join 
+
+Left Outer Join returns all rows of a table on the left side of the jorows for which there is no matching row on the right side, the result contains NULL on the right side.
+Left Outer Join returns all the rows from the left table and matching rows from the right table. If a row in the left table does not have a matching row in the right table, the result set will include NULL values for the columns in the right table.
+
+2. Right Outer Join 
+
+Right Outer Join is similar to Left Outer Join (Right replaces Left everywhere). Right Outer Join returns all the rows from the right table and matching rows from the left table. If a row in the right table does not have a matching row in the left table, the result set will include NULL values for the columns in the left table.
+
+3. Full Outer Join 
+
+Full Outer Join contains the results of both the Left and Right outer joins. It will provide a mixture of two tables. Full Outer Join returns all the rows from both tables, including matching and non-matching rows. If a row in one table does not have a matching row in the other table, the result set will include NULL values for the columns in the table that do not have a match.
+
+FULL OUTER JOIN, iki tablodaki bütün satırları getirir. Eşleşenleri yan yana koyar. Eşleşmeyenleri de atmaz; eksik tarafı NULL ile doldurarak sonuca ekler.
+
+Kısaca: FULL OUTER JOIN = LEFT JOIN + RIGHT JOIN’in birleşimi.
+
+
+Grup					Satır			Görünüm
+İki tabloda da var			100			Her şey dolu
+Sadece StudentInformation’da var	100			AddressNo ve AdressDetail NULL
+Sadece StudentAddress’te var		100			InfoNo ve StudentName NULL
+
+Ne zaman kullanılır? İki listeyi karşılaştırıp her iki taraftaki eksikleri bulmak istediğinde. Örnekler:
+
+İki sistemdeki müşteri kayıtlarını karşılaştırmak (CRM’de olup faturalama sisteminde olmayanlar ve tersi)
+Bu ayın satışlarını geçen ayınkilerle ürün bazında karşılaştırmak (sadece bu ay satılanlar, sadece geçen ay satılanlar, ikisinde de satılanlar)
+Veri doğrulama: iki tablo birbiriyle tutarlı mı?
+
+FULL OUTER JOIN çaprazlama yapmaz. Çaprazlamayı CROSS JOIN yapar.
+
+Ama dikkat etmen gereken bir “çoğalma” durumu var. Bu sadece FULL JOIN’e özgü değil, bütün JOIN’lerde olur. Eşleştirdiğin kolonda bir değer iki tarafta da birden fazla kez geçiyorsa, o değer için satırlar çarpılır.
+
+Örnek: bir öğrencinin kantin tablosunda 3 işlemi, adres tablosunda da 2 adresi olsaydı:
+
+CanteenExpenses: 2020015 → 20, 30, 10     (3 satır)
+StudentAddress:  2020015 → Adres A, Adres B (2 satır)
+
+JOIN sonucunda bu öğrenci için 3 × 2 = 6 satır çıkar. Her harcama her adresle eşleşir. Bu bir tür kontrollü çaprazlama ve en tehlikeli yanı toplamları bozması: SUM(ExpenseAmount) 60 yerine 120 çıkar, çünkü her harcama iki kez sayılır.
+
+Bizim tablolarda bu sorun var mı?
+
+StudentInformation ve StudentAddress’te her öğrenci numarası bir kez geçiyor. Bu yüzden önceki sorgular güvenli; çoğalma yok.
+CanteenExpenses’ta bir öğrenci birden fazla kez geçiyor (bire-çok ilişki). Bu normal; sonuçta her harcama için bir satır olur, çoğalma değil.
+Önceki mesajdaki 4. örnekte (üç tablo birden) toplam doğru çıkıyor, çünkü adres tablosunda her öğrenci tek. Bir öğrencinin iki adresi olsaydı, harcaması iki kez sayılırdı.
+
+Pratik kural: JOIN’den sonra satır sayısı beklediğinden fazlaysa, eşleştirdiğin kolonda tekrar eden değerler vardır. Kontrol etmek için:
+
+SELECT StudentNumber, COUNT(*)
+FROM StudentAddress
+GROUP BY StudentNumber
+HAVING COUNT(*) > 1;   -- boş dönerse tekrar yok
+
+“JOIN’den sonra rakamlar şişti” hatası çok sık yaşanır sebebi nedir ?
+
+“Hayır, FULL OUTER JOIN çaprazlama yapmaz. Çaprazlama yani kartezyen çarpım CROSS JOIN’dir; eşleştirme koşulu olmadan her satırı diğer tablodaki her satırla birleştirir. FULL OUTER JOIN ise ON koşuluna göre eşleşen satırları yan yana getirir, iki taraftaki eşleşmeyen satırları da eksik kolonları NULL olacak şekilde sonuca ekler. Ancak şuna dikkat etmek gerekir: eşleştirme kolonunda bir değer iki tabloda da birden fazla kez geçiyorsa, o değer için satırlar çarpılır ve toplamlar şişer. Bu yüzden JOIN’den önce anahtar kolonun benzersiz olup olmadığını kontrol ederim, JOIN’den sonra da satır sayısının beklentiyle uyuştuğuna bakarım.”
+
+"Eşleştirme kolonu", `ON` kısmında kullandığın kolon. Bizim örneklerde bu `StudentNumber`. İfade şunu anlatıyor: aynı öğrenci numarası **her iki tabloda da** birden fazla satırda geçiyorsa sorun çıkar.
+
+Üç durumu karşılaştıralım:
+
+**1. Bire-bir: iki tabloda da bir kez geçiyor → sorun yok**
+
+```
+StudentInformation        StudentAddress
+2020015 | Ali             2020015 | Adres A
+```
+
+Sonuç: 1 × 1 = **1 satır**. Bizim StudentInformation ile StudentAddress tabloları böyle.
+
+**2. Bire-çok: bir tabloda bir kez, diğerinde çok kez → normal**
+
+```
+StudentInformation        CanteenExpenses
+2020015 | Ali             2020015 | 20
+                          2020015 | 30
+                          2020015 | 10
+```
+
+Sonuç: 1 × 3 = **3 satır**. Her harcama için bir satır geliyor ve bu zaten istenen şey. Ali'nin adı üç kez tekrar etse de toplam harcama doğru çıkıyor: 60.
+
+**3. Çoka-çok: iki tabloda da birden fazla kez geçiyor → çoğalma**
+
+Diyelim ki Ali'nin adres tablosunda iki kaydı var (ev ve yurt adresi) ve kantinde 3 işlemi var:
+
+```
+StudentAddress            CanteenExpenses
+2020015 | Ev              2020015 | 20
+2020015 | Yurt            2020015 | 30
+                          2020015 | 10
+```
+
+Bu iki tabloyu `StudentNumber` üzerinden JOIN'lediğinde SQL her adresi her harcamayla eşleştirir:
+
+| Adres | Harcama |
+|---|---|
+| Ev | 20 |
+| Ev | 30 |
+| Ev | 10 |
+| Yurt | 20 |
+| Yurt | 30 |
+| Yurt | 10 |
+
+Sonuç: 2 × 3 = **6 satır**. Burada sorun şu: `SUM(Harcama)` hesaplarsan **120** çıkar, ama Ali aslında **60** TL harcadı. Her harcama, adres sayısı kadar (2 kez) sayılmış oluyor.
+
+**Neden önemli?** Gerçek veritabanlarında bu çok sık oluyor. Bir müşterinin birden fazla adresi, telefonu ya da kampanya kaydı olabiliyor. Bunu fark etmeden JOIN yapıp toplam alırsan ciroyu, müşteri sayısını veya harcamayı olduğundan fazla raporlarsın, ve hata kimsenin gözüne çarpmadan bir yönetici raporuna kadar gidebilir.
+
+**Nasıl önlenir?**
+- JOIN'den önce eşleştirme kolonunda tekrar olup olmadığını kontrol et (`GROUP BY ... HAVING COUNT(*) > 1`).
+
+SELECT StudentNumber, COUNT(*)
+FROM StudentAddress
+GROUP BY StudentNumber
+HAVING COUNT(*) > 1;   -- boş dönerse tekrar yok
+
+- Toplamları **JOIN'den önce** ayrı ayrı hesapla, sonra birleştir:
+
+```sql
+SELECT Si.StudentName, T.TotalExpense
+FROM StudentInformation Si
+INNER JOIN (
+    SELECT StudentNumber, SUM(ExpenseAmount) AS TotalExpense
+    FROM CanteenExpenses
+    GROUP BY StudentNumber
+) T ON Si.StudentNumber = T.StudentNumber;
+```
+
+Burada harcamalar önce öğrenci başına tek satıra indiriliyor. Sonrasında hangi tabloyla JOIN yapılırsa yapılsın toplam çoğalmıyor.
+
+How To Use Outer Join
+Outer Join is performed by the selection of the records from all the tables given there. Left Outer Join works by selecting all records from the left table and matching records from the right table. Similarly, Right Outer Join works by selecting all records from the right table and matching records from the left table and the Full Outer Join returns all records if a match occurs in the left or the right table.
+
+Advantages
+Increased Data Retrieval: Outer joins can retrieve more data than inner joins since they include non-matching rows in the result set.
+Data Integrity: Outer joins can help maintain data integrity by ensuring that all records in the primary table are returned, even if there are no corresponding records in the secondary table.
+Data Analysis: Outer joins can be useful for data analysis, especially when exploring relationships between data sets and identifying trends and patterns.
+Disadvantages
+Slow Query Execution: Outer joins can be slower to execute than inner joins, especially when dealing with large data sets.
+Data Duplication: Outer joins can return duplicate data when the secondary table has multiple matching records.
+Data Quality: Outer joins may return inaccurate or incomplete data if the tables being joined have incomplete or inconsistent data.
+
+
+
+
+
+
+
+
+
+
 
 
 
